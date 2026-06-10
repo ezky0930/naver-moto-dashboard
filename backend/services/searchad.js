@@ -52,7 +52,7 @@ export async function makeRawAdRequest(keyword) {
 
 // 씨앗 키워드 → API가 반환하는 연관 키워드 전체 (필터 없음)
 // 반환: { keyword, pc, mobile, total, compIdx }[] 검색수 내림차순
-export async function discoverRelatedKeywords(seedKeywords = ['오토바이헬멧', '오토바이장갑', '오토바이자켓', '오토바이부츠', '바이크용품', '오토바이바지']) {
+export async function discoverRelatedKeywords(seedKeywords = ['오토바이헬멧', '오토바이용품', '바이크용품']) {
   if (!isAdConfigured()) return []
   const cacheKey = `ad:discover:${seedKeywords.slice().sort().join(',')}`
   const cached = getCache(cacheKey, CACHE_TTL)

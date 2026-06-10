@@ -8,7 +8,7 @@ const COMP_STYLES = {
   '높음': 'bg-red-500/20 text-red-300',
 }
 
-const DEFAULT_SEEDS = ['오토바이헬멧', '오토바이장갑', '오토바이자켓', '오토바이부츠', '바이크용품', '오토바이바지']
+const DEFAULT_SEEDS = ['오토바이헬멧', '오토바이용품', '바이크용품']
 
 export default function KeywordDiscovery() {
   const [open, setOpen] = useState(false)

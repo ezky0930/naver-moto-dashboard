@@ -27,7 +27,7 @@ router.post('/keywords/discover', async (req, res) => {
   try {
     const seeds = Array.isArray(req.body?.seeds) && req.body.seeds.length > 0
       ? req.body.seeds.slice(0, 10)
-      : ['오토바이헬멧', '오토바이장갑', '오토바이자켓', '오토바이부츠', '바이크용품', '오토바이바지']
+      : ['오토바이헬멧', '오토바이용품', '바이크용품']
     const keywords = await discoverRelatedKeywords(seeds)
     res.json({ seeds, keywords, total: keywords.length })
   } catch (err) {
