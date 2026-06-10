@@ -1,0 +1,27 @@
+{
+  "name": "naver-moto-dashboard",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "네이버 오토바이 마켓 인텔리전스 대시보드",
+  "scripts": {
+    "install:all": "npm install && npm install --prefix backend && npm install --prefix frontend",
+    "dev": "concurrently -n backend,frontend -c green,cyan \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
+    "build": "npm run build --prefix frontend",
+    "start": "node backend/index.js"
+  },
+  "dependencies": {
+    "axios": "^1.7.9",
+    "better-sqlite3": "^11.8.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "node-cron": "^4.2.1"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  },
+  "overrides": {
+    "shell-quote": "^1.8.4"
+  }
+}
