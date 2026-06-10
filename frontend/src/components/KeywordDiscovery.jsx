@@ -46,6 +46,11 @@ export default function KeywordDiscovery() {
     setPage(1)
   }
 
+  // 광고 API(절대 검색수) / DataLab 폴백(상대 지수) 데이터 유무
+  const hasAbs = useMemo(() => data?.keywords?.some(r => r.total != null) ?? false, [data])
+  const hasComp = useMemo(() => data?.keywords?.some(r => r.compIdx) ?? false, [data])
+  const hasChange = useMemo(() => data?.keywords?.some(r => r.changePct != null) ?? false, [data])
+
   const rows = useMemo(() => {
     if (!data?.keywords) return []
     let list = data.keywords
@@ -53,10 +58,14 @@ export default function KeywordDiscovery() {
       const f = filter.trim().toLowerCase()
       list = list.filter(r => r.keyword.toLowerCase().includes(f))
     }
+    // DataLab 폴백 데이터는 total이 없으므로 검색수 정렬 시 volumeIndex로 대체
+    const val = (r) => sortKey === 'total' ? (r.total ?? r.volumeIndex ?? 0) : (r[sortKey] ?? 0)
     list = [...list].sort((a, b) => {
-      const av = a[sortKey] ?? 0
-      const bv = b[sortKey] ?? 0
-      if (typeof av === 'string') return sortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av)
+      const av = val(a)
+      const bv = val(b)
+      if (typeof av === 'string' || typeof bv === 'string') {
+        return sortDir === 'asc' ? String(av).localeCompare(String(bv)) : String(bv).localeCompare(String(av))
+      }
       return sortDir === 'desc' ? bv - av : av - bv
     })
     return list
@@ -83,7 +92,7 @@ export default function KeywordDiscovery() {
         <div>
           <h2 className="font-bold text-white">
             🔎 오토바이 전체 키워드 탐색
-            <span className="ml-2 text-sm font-normal text-slate-400">네이버 광고 API 연관어 전수 조회</span>
+            <span className="ml-2 text-sm font-normal text-slate-400">연관 키워드 검색량 일괄 조회</span>
           </h2>
           {!open && (
             <p className="mt-0.5 text-xs text-slate-500">
@@ -113,7 +122,7 @@ export default function KeywordDiscovery() {
           {loading && (
             <div className="flex items-center gap-2 py-6 text-sm text-slate-400">
               <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-[#03C75A] border-t-transparent" />
-              키워드 수집 중... (씨앗 6개 → 연관 키워드 전수 조회)
+              키워드 수집 중... (수십 개 키워드 일괄 조회 — 최대 20초)
             </div>
           )}
           {error && (
@@ -124,7 +133,7 @@ export default function KeywordDiscovery() {
           )}
           {data && data.keywords.length === 0 && !loading && (
             <div className="flex items-center gap-3 py-4">
-              <p className="text-sm text-amber-400">키워드 결과가 없습니다. 광고 API 응답이 비어있습니다.</p>
+              <p className="text-sm text-amber-400">키워드 결과가 없습니다. 잠시 후 다시 시도해주세요.</p>
               <button onClick={load} className="text-xs text-[#03C75A] hover:underline">다시 불러오기</button>
             </div>
           )}
@@ -153,10 +162,11 @@ export default function KeywordDiscovery() {
                     <tr className="border-b border-white/10 text-left text-xs text-slate-400">
                       <th className="py-2 pr-3 font-medium w-8">#</th>
                       <SortTh col="keyword" label="키워드" />
-                      <SortTh col="total" label="월간 검색수" />
-                      <SortTh col="pc" label="PC" />
-                      <SortTh col="mobile" label="모바일" />
-                      <SortTh col="compIdx" label="경쟁강도" />
+                      <SortTh col="total" label={hasAbs ? '월간 검색수' : '검색량 지수'} />
+                      {hasAbs && <SortTh col="pc" label="PC" />}
+                      {hasAbs && <SortTh col="mobile" label="모바일" />}
+                      {hasChange && <SortTh col="changePct" label="전월 대비" />}
+                      {hasComp && <SortTh col="compIdx" label="경쟁강도" />}
                     </tr>
                   </thead>
                   <tbody>
@@ -169,21 +179,35 @@ export default function KeywordDiscovery() {
                         <td className="py-2 pr-3 font-semibold text-white">
                           {r.total != null
                             ? (r.total >= 10 ? r.total.toLocaleString() : '<10')
-                            : <span className="text-slate-400">{r.volumeIndex?.toLocaleString() ?? '—'}</span>}
+                            : <span className="text-slate-300">{r.volumeIndex?.toLocaleString() ?? '—'}</span>}
                         </td>
-                        <td className="py-2 pr-3 text-xs text-slate-400">
-                          {r.pc != null ? (r.pc >= 10 ? r.pc.toLocaleString() : '<10') : '—'}
-                        </td>
-                        <td className="py-2 pr-3 text-xs text-slate-400">
-                          {r.mobile != null ? (r.mobile >= 10 ? r.mobile.toLocaleString() : '<10') : '—'}
-                        </td>
-                        <td className="py-2 pr-3">
-                          {r.compIdx ? (
-                            <span className={`rounded px-1.5 py-0.5 text-xs font-medium ${COMP_STYLES[r.compIdx] ?? 'bg-slate-500/20 text-slate-300'}`}>
-                              {r.compIdx}
-                            </span>
-                          ) : <span className="text-slate-600">—</span>}
-                        </td>
+                        {hasAbs && (
+                          <td className="py-2 pr-3 text-xs text-slate-400">
+                            {r.pc != null ? (r.pc >= 10 ? r.pc.toLocaleString() : '<10') : '—'}
+                          </td>
+                        )}
+                        {hasAbs && (
+                          <td className="py-2 pr-3 text-xs text-slate-400">
+                            {r.mobile != null ? (r.mobile >= 10 ? r.mobile.toLocaleString() : '<10') : '—'}
+                          </td>
+                        )}
+                        {hasChange && (
+                          <td className="py-2 pr-3 text-xs">
+                            {r.changePct == null ? <span className="text-slate-600">—</span>
+                              : r.changePct > 0 ? <span className="font-medium text-red-400">▲ {r.changePct.toFixed(1)}%</span>
+                              : r.changePct < 0 ? <span className="font-medium text-blue-400">▼ {Math.abs(r.changePct).toFixed(1)}%</span>
+                              : <span className="text-slate-500">0.0%</span>}
+                          </td>
+                        )}
+                        {hasComp && (
+                          <td className="py-2 pr-3">
+                            {r.compIdx ? (
+                              <span className={`rounded px-1.5 py-0.5 text-xs font-medium ${COMP_STYLES[r.compIdx] ?? 'bg-slate-500/20 text-slate-300'}`}>
+                                {r.compIdx}
+                              </span>
+                            ) : <span className="text-slate-600">—</span>}
+                          </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>

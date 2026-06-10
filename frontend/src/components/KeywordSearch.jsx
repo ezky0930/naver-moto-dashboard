@@ -106,6 +106,12 @@ export default function KeywordSearch({ onSearch }) {
           >
             트렌드 차트로 보기 →
           </button>
+
+          {!hasAbsolute && (
+            <p className="w-full text-[10px] text-slate-500">
+              ℹ️ 지수는 해당 키워드의 최근 60일 내 상대값입니다. 다른 키워드와 직접 비교할 수 없으며, 전월 대비 증감이 더 정확한 지표입니다.
+            </p>
+          )}
         </div>
       )}
     </div>

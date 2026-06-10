@@ -165,14 +165,19 @@ export async function getKeywordVolumes(keywords = DEFAULT_KEYWORDS) {
     const rows = new Map() // keyword → { volumeIndex, changePct }
     let anchorRefAvg = null
 
-    for (const chunk of chunks) {
-      const { data } = await client.post('/v1/datalab/search', {
-        startDate,
-        endDate,
-        timeUnit: 'date',
-        keywordGroups: chunk.map((k) => ({ groupName: k, keywords: [k] })),
-      })
+    // 청크를 병렬 요청 (55개 키워드 = 14청크 — 직렬이면 Vercel 30초 제한 초과 위험)
+    const responses = await Promise.all(
+      chunks.map((chunk) =>
+        client.post('/v1/datalab/search', {
+          startDate,
+          endDate,
+          timeUnit: 'date',
+          keywordGroups: chunk.map((k) => ({ groupName: k, keywords: [k] })),
+        }).then(({ data }) => data),
+      ),
+    )
 
+    for (const data of responses) {
       // 주의: 요청은 groupName이지만 응답은 title 필드로 돌아온다
       const anchorData = data.results.find((r) => r.title === anchor)?.data ?? []
       const anchorAvg = avgRatio(anchorData, last30Start, endDate) || 1

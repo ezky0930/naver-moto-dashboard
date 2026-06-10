@@ -22,7 +22,6 @@ export default function App() {
   const [trendLoading, setTrendLoading] = useState(false)
   const [keywords, setKeywords] = useState(null)
   const [shopping, setShopping] = useState(null)
-  const [crawlPending, setCrawlPending] = useState(0)
   const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -42,7 +41,6 @@ export default function App() {
       ])
       setKeywords(k)
       setShopping(s)
-      setCrawlPending(s?.crawlPending ?? 0)
       setStats(st)
       // 순위 변동은 자동 수집 대상 키워드에서만 의미가 있음
       setRankChanges(kw === MAIN_KEYWORD ? (h?.rankChanges ?? null) : null)
