@@ -119,7 +119,10 @@ export default function App() {
               <KeywordTable data={keywords} />
             </div>
             {/* 섹션 3: 핵심 판매 순위표 */}
-            <ProductTable data={shopping} stats={stats} rankChanges={rankChanges} crawlPending={crawlPending} />
+            <ProductTable
+              data={shopping} stats={stats} rankChanges={rankChanges}
+              compIdx={keywords.keywords?.find((k) => k.keyword === shopping.keyword)?.compIdx}
+            />
           </>
         )}
 

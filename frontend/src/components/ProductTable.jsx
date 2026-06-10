@@ -28,10 +28,22 @@ const COLUMNS = [
   { key: 'title', label: '상품명', sortable: false },
   { key: 'brand', label: '브랜드', sortable: false },
   { key: 'price', label: '가격', sortable: true },
-  { key: 'reviewCount', label: '리뷰수', sortable: true },
-  { key: 'purchaseCount', label: '판매건수(추정)', sortable: true },
   { key: 'link', label: '링크', sortable: false },
 ]
+
+const COMP_STYLES = {
+  '낮음': 'bg-green-500/20 text-green-300',
+  '중간': 'bg-amber-500/20 text-amber-300',
+  '높음': 'bg-red-500/20 text-red-300',
+}
+function CompBadge({ idx }) {
+  if (!idx) return null
+  return (
+    <span className={`rounded px-2 py-0.5 text-xs font-medium ${COMP_STYLES[idx] ?? 'bg-slate-500/20 text-slate-300'}`}>
+      경쟁강도 {idx}
+    </span>
+  )
+}
 
 function FilterButton({ active, children, onClick }) {
   return (
@@ -55,17 +67,15 @@ function RankChange({ change }) {
   return <span className="ml-1 text-[10px] text-slate-600">-</span>
 }
 
-export default function ProductTable({ data, stats, rankChanges, crawlPending }) {
-  // productId → 어제 대비 순위 변동
+export default function ProductTable({ data, stats, rankChanges, compIdx }) {
   const changeMap = useMemo(() => {
     if (!rankChanges?.available) return null
     return new Map(rankChanges.items.map((it) => [it.productId, it.change]))
   }, [rankChanges])
   const [brandFilter, setBrandFilter] = useState('전체')
   const [priceFilter, setPriceFilter] = useState('all')
-  // 기본 정렬: 판매건수 내림차순 (데이터 없으면 원래 순위 유지)
-  const [sortKey, setSortKey] = useState('purchaseCount')
-  const [sortDir, setSortDir] = useState('desc')
+  const [sortKey, setSortKey] = useState('rank')
+  const [sortDir, setSortDir] = useState('asc')
 
   function clickColumn(col) {
     if (!col.sortable) return
@@ -90,8 +100,6 @@ export default function ProductTable({ data, stats, rankChanges, crawlPending })
     return list.slice(0, 30)
   }, [data.items, brandFilter, priceFilter, sortKey, sortDir])
 
-  const hasReviewData = data.items.some((it) => it.reviewCount != null)
-
   return (
     <section className="rounded-2xl border border-white/10 bg-white/5 p-5">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
@@ -105,13 +113,7 @@ export default function ProductTable({ data, stats, rankChanges, crawlPending })
               {stats.categoryDist[0].path} <b className="text-[#03C75A]">{stats.categoryDist[0].pct}%</b>
             </span>
           )}
-          {/* 리뷰 크롤 진행 중 표시 */}
-          {crawlPending > 0 && (
-            <span className="flex items-center gap-1 rounded-full bg-amber-500/15 px-2.5 py-0.5 text-xs text-amber-400">
-              <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-amber-400" />
-              리뷰 수집 중 ({crawlPending}개)
-            </span>
-          )}
+          <CompBadge idx={compIdx} />
           <SourceBadge source={data.source} />
         </div>
       </div>
@@ -133,7 +135,7 @@ export default function ProductTable({ data, stats, rankChanges, crawlPending })
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[760px] text-sm">
+        <table className="w-full min-w-[560px] text-sm">
           <thead>
             <tr className="border-b border-white/10 text-left text-xs text-slate-400">
               {COLUMNS.map((col) => (
@@ -165,8 +167,6 @@ export default function ProductTable({ data, stats, rankChanges, crawlPending })
                   </span>
                 </td>
                 <td className="py-2.5 pr-3 text-slate-200">{it.price.toLocaleString()}원</td>
-                <td className="py-2.5 pr-3 text-slate-300">{it.reviewCount != null ? it.reviewCount.toLocaleString() : '—'}</td>
-                <td className="py-2.5 pr-3 text-slate-300">{it.purchaseCount != null ? it.purchaseCount.toLocaleString() : '—'}</td>
                 <td className="py-2.5">
                   <a
                     href={it.link} target="_blank" rel="noreferrer"
@@ -181,12 +181,7 @@ export default function ProductTable({ data, stats, rankChanges, crawlPending })
         </table>
       </div>
 
-      {!hasReviewData && (
-        <p className="mt-3 text-xs text-slate-500">
-          ℹ️ 리뷰수·판매건수는 네이버 검색 API가 제공하지 않아 4단계(크롤링 보조)에서 수집됩니다.
-        </p>
-      )}
-      {data.note && <p className="mt-1 text-xs text-slate-500">ℹ️ {data.note}</p>}
+      {data.note && <p className="mt-3 text-xs text-slate-500">ℹ️ {data.note}</p>}
     </section>
   )
 }

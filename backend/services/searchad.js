@@ -68,7 +68,7 @@ export async function getMonthlySearchCounts(keywords) {
         const mobile = parseQcCnt(item.monthlyMobileQcCnt)
         // 정확히 요청한 키워드만 포함 (API가 연관어도 돌려줌)
         if (chunk.includes(kw)) {
-          result.set(kw, { pc, mobile, total: pc + mobile })
+          result.set(kw, { pc, mobile, total: pc + mobile, compIdx: item.compIdx ?? null })
         }
       }
     } catch (err) {

@@ -1,5 +1,19 @@
-// 섹션 2: 인기 검색어 순위표 — 순위/검색어/월간검색수(PC+모바일)/전월 대비 증감
+// 섹션 2: 인기 검색어 순위표 — 순위/검색어/월간검색수(PC+모바일)/경쟁강도/전월 대비 증감
 import { SourceBadge } from './Status.jsx'
+
+const COMP_STYLES = {
+  '낮음': 'bg-green-500/20 text-green-300',
+  '중간': 'bg-amber-500/20 text-amber-300',
+  '높음': 'bg-red-500/20 text-red-300',
+}
+function CompBadge({ idx }) {
+  if (!idx) return <span className="text-slate-600">—</span>
+  return (
+    <span className={`rounded px-1.5 py-0.5 text-xs font-medium ${COMP_STYLES[idx] ?? 'bg-slate-500/20 text-slate-300'}`}>
+      {idx}
+    </span>
+  )
+}
 
 function Change({ pct }) {
   if (pct > 0) return <span className="font-medium text-red-400">▲ {pct.toFixed(1)}%</span>
@@ -64,6 +78,7 @@ export default function KeywordTable({ data }) {
                 <>
                   <th className="py-2 pr-3 font-medium text-slate-500">PC</th>
                   <th className="py-2 pr-3 font-medium text-slate-500">모바일</th>
+                  <th className="py-2 pr-3 font-medium">경쟁강도</th>
                 </>
               )}
               <th className="py-2 font-medium">전월 대비</th>
@@ -84,6 +99,9 @@ export default function KeywordTable({ data }) {
                     </td>
                     <td className="py-2.5 pr-3 text-xs text-slate-500">
                       {r.monthlyMobile != null ? r.monthlyMobile.toLocaleString() : '—'}
+                    </td>
+                    <td className="py-2.5 pr-3">
+                      <CompBadge idx={r.compIdx} />
                     </td>
                   </>
                 )}

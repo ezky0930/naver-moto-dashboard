@@ -105,7 +105,7 @@ export async function getKeywordVolumes(keywords = DEFAULT_KEYWORDS) {
         if (counts.size > 0) {
           for (const r of cached.keywords) {
             const c = counts.get(r.keyword)
-            if (c) { r.monthlyPc = c.pc; r.monthlyMobile = c.mobile; r.monthlyTotal = c.total }
+            if (c) { r.monthlyPc = c.pc; r.monthlyMobile = c.mobile; r.monthlyTotal = c.total; r.compIdx = c.compIdx }
           }
         }
       } catch (e) { /* 광고 API 실패해도 DataLab 캐시 결과는 반환 */ }
@@ -173,7 +173,7 @@ export async function getKeywordVolumes(keywords = DEFAULT_KEYWORDS) {
         const counts = await getMonthlySearchCounts(keywords)
         for (const r of list) {
           const c = counts.get(r.keyword)
-          if (c) { r.monthlyPc = c.pc; r.monthlyMobile = c.mobile; r.monthlyTotal = c.total }
+          if (c) { r.monthlyPc = c.pc; r.monthlyMobile = c.mobile; r.monthlyTotal = c.total; r.compIdx = c.compIdx }
         }
       } catch (e) {
         console.error('[datalab/volume] 광고 API 병합 실패:', e.message)
