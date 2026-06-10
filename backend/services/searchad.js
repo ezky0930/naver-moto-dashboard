@@ -52,14 +52,15 @@ export async function discoverRelatedKeywords(seedKeywords = ['오토바이헬�
   const client = createAdClient()
   const seen = new Map() // keyword → { pc, mobile, total, compIdx }
 
-  const CHUNK = 5
-  for (let i = 0; i < seedKeywords.length; i += CHUNK) {
-    const chunk = seedKeywords.slice(i, i + CHUNK)
+  // 씨앗 키워드를 1개씩 개별 요청 (쉼표 묶음은 연관어를 줄이는 경향)
+  for (const seed of seedKeywords) {
     try {
       const { data } = await client.get('/keywordstool', {
-        params: { hintKeywords: chunk.join(','), showDetail: 1 },
+        params: { hintKeywords: seed, showDetail: 1 },
       })
-      for (const item of data.keywordList ?? []) {
+      const list = data.keywordList ?? []
+      console.log(`[searchad/discover] "${seed}" → ${list.length}건`)
+      for (const item of list) {
         const kw = item.relKeyword
         if (!kw || seen.has(kw)) continue
         const pc = parseQcCnt(item.monthlyPcQcCnt)
@@ -67,7 +68,12 @@ export async function discoverRelatedKeywords(seedKeywords = ['오토바이헬�
         seen.set(kw, { keyword: kw, pc, mobile, total: pc + mobile, compIdx: item.compIdx ?? null })
       }
     } catch (err) {
-      console.error('[searchad/discover] 오류:', chunk, err.response?.data ?? err.message)
+      const msg = err.response?.data ?? err.message
+      console.error(`[searchad/discover] "${seed}" 오류:`, msg)
+      // 마지막 씨앗도 실패하고 결과가 없으면 에러 메시지 보존
+      if (seen.size === 0 && seed === seedKeywords[seedKeywords.length - 1]) {
+        throw new Error(`광고 API 오류: ${JSON.stringify(msg)}`)
+      }
     }
   }
 
