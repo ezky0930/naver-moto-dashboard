@@ -9,6 +9,7 @@ import TrendChart, { TREND_PERIODS } from './components/TrendChart.jsx'
 import KeywordTable from './components/KeywordTable.jsx'
 import ProductTable from './components/ProductTable.jsx'
 import KeywordSearch from './components/KeywordSearch.jsx'
+import KeywordDiscovery from './components/KeywordDiscovery.jsx'
 import { Spinner, ErrorBox } from './components/Status.jsx'
 
 const MAIN_KEYWORD = '오토바이헬멧' // 자동 수집·순위 변동 추적 대상 키워드
@@ -122,6 +123,9 @@ export default function App() {
               />
               <KeywordTable data={keywords} />
             </div>
+            {/* 섹션 4: 전체 키워드 탐색 */}
+            <KeywordDiscovery />
+
             {/* 섹션 3: 핵심 판매 순위표 */}
             <ProductTable
               data={shopping} stats={stats} rankChanges={rankChanges}

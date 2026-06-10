@@ -41,6 +41,41 @@ function parseQcCnt(v) {
   return Number(v) || 0
 }
 
+// 씨앗 키워드 → API가 반환하는 연관 키워드 전체 (필터 없음)
+// 반환: { keyword, pc, mobile, total, compIdx }[] 검색수 내림차순
+export async function discoverRelatedKeywords(seedKeywords = ['오토바이', '바이크', '헬멧', '모터사이클', '라이딩']) {
+  if (!isAdConfigured()) return []
+  const cacheKey = `ad:discover:${seedKeywords.slice().sort().join(',')}`
+  const cached = getCache(cacheKey, CACHE_TTL)
+  if (cached) return cached
+
+  const client = createAdClient()
+  const seen = new Map() // keyword → { pc, mobile, total, compIdx }
+
+  const CHUNK = 5
+  for (let i = 0; i < seedKeywords.length; i += CHUNK) {
+    const chunk = seedKeywords.slice(i, i + CHUNK)
+    try {
+      const { data } = await client.get('/keywordstool', {
+        params: { hintKeywords: chunk.join(','), showDetail: 1 },
+      })
+      for (const item of data.keywordList ?? []) {
+        const kw = item.relKeyword
+        if (!kw || seen.has(kw)) continue
+        const pc = parseQcCnt(item.monthlyPcQcCnt)
+        const mobile = parseQcCnt(item.monthlyMobileQcCnt)
+        seen.set(kw, { keyword: kw, pc, mobile, total: pc + mobile, compIdx: item.compIdx ?? null })
+      }
+    } catch (err) {
+      console.error('[searchad/discover] 오류:', chunk, err.response?.data ?? err.message)
+    }
+  }
+
+  const result = [...seen.values()].sort((a, b) => b.total - a.total)
+  if (result.length > 0) setCache(cacheKey, result)
+  return result
+}
+
 // keywords: string[] (최대 100개, 한 번에 5개씩 요청)
 // 반환: Map<keyword, { pc: number, mobile: number, total: number }>
 export async function getMonthlySearchCounts(keywords) {

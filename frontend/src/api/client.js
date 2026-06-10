@@ -39,6 +39,15 @@ export function fetchShopping(keyword = '오토바이헬멧', sort = 'sim', disp
   return request(`/api/shopping/search?${qs}`)
 }
 
+// D. 연관 키워드 전체 탐색 (광고 API 기반, seeds 생략 시 기본 오토바이 관련)
+export function fetchKeywordDiscover(seeds) {
+  return request('/api/keywords/discover', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(seeds?.length ? { seeds } : {}),
+  })
+}
+
 // 수동 전체 갱신 (캐시 무시하고 재수집 + 스냅샷 저장)
 export function collectNow() {
   return request('/api/collect', { method: 'POST' })
