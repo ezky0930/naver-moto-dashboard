@@ -1,8 +1,9 @@
 // C. POST /api/keywords/volume — 키워드 검색량 조회 (body.keywords 생략 시 기본 9개)
 // D. POST /api/keywords/discover — 씨앗 키워드로 연관 키워드 전체 탐색 (광고 API)
+// E. GET  /api/keywords/adtest  — 광고 API 원본 응답 진단
 import { Router } from 'express'
 import { getKeywordVolumes, DEFAULT_KEYWORDS } from '../services/datalab.js'
-import { discoverRelatedKeywords, isAdConfigured } from '../services/searchad.js'
+import { discoverRelatedKeywords, isAdConfigured, makeRawAdRequest } from '../services/searchad.js'
 
 const router = Router()
 
@@ -32,6 +33,18 @@ router.post('/keywords/discover', async (req, res) => {
   } catch (err) {
     console.error('[routes/keywords/discover] 처리 오류:', err)
     res.status(500).json({ error: '키워드 탐색 중 오류가 발생했습니다.' })
+  }
+})
+
+// 광고 API 원본 응답 진단 — /api/keywords/adtest?kw=오토바이헬멧
+router.get('/keywords/adtest', async (req, res) => {
+  if (!isAdConfigured()) return res.status(503).json({ error: '광고 API 미설정' })
+  try {
+    const kw = req.query.kw || '오토바이헬멧'
+    const raw = await makeRawAdRequest(kw)
+    res.json({ kw, listLength: raw.keywordList?.length ?? 0, sample: raw.keywordList?.slice(0, 3), full: raw })
+  } catch (err) {
+    res.status(500).json({ error: err.message, detail: err.response?.data })
   }
 })
 

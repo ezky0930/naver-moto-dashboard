@@ -41,6 +41,15 @@ function parseQcCnt(v) {
   return Number(v) || 0
 }
 
+// 진단용: /keywordstool 원본 응답을 그대로 반환
+export async function makeRawAdRequest(keyword) {
+  const client = createAdClient()
+  const { data } = await client.get('/keywordstool', {
+    params: { hintKeywords: keyword, showDetail: 1 },
+  })
+  return data
+}
+
 // 씨앗 키워드 → API가 반환하는 연관 키워드 전체 (필터 없음)
 // 반환: { keyword, pc, mobile, total, compIdx }[] 검색수 내림차순
 export async function discoverRelatedKeywords(seedKeywords = ['오토바이헬멧', '오토바이장갑', '오토바이자켓', '오토바이부츠', '바이크용품', '오토바이바지']) {
