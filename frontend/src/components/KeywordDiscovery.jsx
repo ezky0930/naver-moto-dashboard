@@ -8,7 +8,7 @@ const COMP_STYLES = {
   '높음': 'bg-red-500/20 text-red-300',
 }
 
-const DEFAULT_SEEDS = ['오토바이', '바이크', '헬멧', '모터사이클', '라이딩', '오토바이용품']
+const DEFAULT_SEEDS = ['오토바이헬멧', '오토바이장갑', '오토바이자켓', '오토바이부츠', '바이크용품', '오토바이바지']
 
 export default function KeywordDiscovery() {
   const [open, setOpen] = useState(false)
@@ -113,11 +113,22 @@ export default function KeywordDiscovery() {
           {loading && (
             <div className="flex items-center gap-2 py-6 text-sm text-slate-400">
               <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-[#03C75A] border-t-transparent" />
-              키워드 수집 중... (광고 API 6개 씨앗 × 연관어 전수)
+              키워드 수집 중... (씨앗 6개 → 연관 키워드 전수 조회)
             </div>
           )}
-          {error && <p className="py-4 text-sm text-red-400">{error}</p>}
-          {data && (
+          {error && (
+            <div className="flex items-center gap-3 py-4">
+              <p className="text-sm text-red-400">{error}</p>
+              <button onClick={load} className="text-xs text-[#03C75A] hover:underline">다시 시도</button>
+            </div>
+          )}
+          {data && data.keywords.length === 0 && !loading && (
+            <div className="flex items-center gap-3 py-4">
+              <p className="text-sm text-amber-400">키워드 결과가 없습니다. 광고 API 응답이 비어있습니다.</p>
+              <button onClick={load} className="text-xs text-[#03C75A] hover:underline">다시 불러오기</button>
+            </div>
+          )}
+          {data && data.keywords.length > 0 && (
             <>
               <div className="mb-3 flex items-center gap-3 flex-wrap">
                 <input
