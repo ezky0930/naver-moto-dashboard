@@ -130,6 +130,9 @@ export default function KeywordDiscovery() {
           )}
           {data && data.keywords.length > 0 && (
             <>
+              {data.note && (
+                <p className="mb-2 text-xs text-amber-400">ℹ️ {data.note}</p>
+              )}
               <div className="mb-3 flex items-center gap-3 flex-wrap">
                 <input
                   type="text"
@@ -164,13 +167,15 @@ export default function KeywordDiscovery() {
                         </td>
                         <td className="py-2 pr-3 font-medium text-white">{r.keyword}</td>
                         <td className="py-2 pr-3 font-semibold text-white">
-                          {r.total >= 10 ? r.total.toLocaleString() : '<10'}
+                          {r.total != null
+                            ? (r.total >= 10 ? r.total.toLocaleString() : '<10')
+                            : <span className="text-slate-400">{r.volumeIndex?.toLocaleString() ?? '—'}</span>}
                         </td>
                         <td className="py-2 pr-3 text-xs text-slate-400">
-                          {r.pc >= 10 ? r.pc.toLocaleString() : '<10'}
+                          {r.pc != null ? (r.pc >= 10 ? r.pc.toLocaleString() : '<10') : '—'}
                         </td>
                         <td className="py-2 pr-3 text-xs text-slate-400">
-                          {r.mobile >= 10 ? r.mobile.toLocaleString() : '<10'}
+                          {r.mobile != null ? (r.mobile >= 10 ? r.mobile.toLocaleString() : '<10') : '—'}
                         </td>
                         <td className="py-2 pr-3">
                           {r.compIdx ? (

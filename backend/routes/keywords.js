@@ -2,7 +2,7 @@
 // D. POST /api/keywords/discover — 씨앗 키워드로 연관 키워드 전체 탐색 (광고 API)
 // E. GET  /api/keywords/adtest  — 광고 API 원본 응답 진단
 import { Router } from 'express'
-import { getKeywordVolumes, DEFAULT_KEYWORDS } from '../services/datalab.js'
+import { getKeywordVolumes, MOTO_BROAD_KEYWORDS } from '../services/datalab.js'
 import { discoverRelatedKeywords, isAdConfigured, makeRawAdRequest } from '../services/searchad.js'
 
 const router = Router()
@@ -21,17 +21,37 @@ router.post('/keywords/volume', async (req, res) => {
 })
 
 router.post('/keywords/discover', async (req, res) => {
-  if (!isAdConfigured()) {
-    return res.status(503).json({ error: '네이버 광고 API 미설정 — NAVER_AD_* 환경변수를 확인하세요.' })
+  // 광고 API 시도 → 실패(IP 제한 등) 시 DataLab 폴백
+  if (isAdConfigured()) {
+    try {
+      const seeds = Array.isArray(req.body?.seeds) && req.body.seeds.length > 0
+        ? req.body.seeds.slice(0, 10)
+        : ['오토바이헬멧', '오토바이용품', '바이크용품']
+      const keywords = await discoverRelatedKeywords(seeds)
+      if (keywords.length > 0) {
+        return res.json({ source: 'ad', seeds, keywords, total: keywords.length })
+      }
+      // 광고 API가 빈 결과 → DataLab 폴백
+    } catch (err) {
+      console.warn('[discover] 광고 API 실패, DataLab 폴백:', err.message)
+    }
   }
+
+  // DataLab 폴백 — 사전 정의 키워드 목록으로 상대 검색량 조회
   try {
-    const seeds = Array.isArray(req.body?.seeds) && req.body.seeds.length > 0
-      ? req.body.seeds.slice(0, 10)
-      : ['오토바이헬멧', '오토바이용품', '바이크용품']
-    const keywords = await discoverRelatedKeywords(seeds)
-    res.json({ seeds, keywords, total: keywords.length })
+    const result = await getKeywordVolumes(MOTO_BROAD_KEYWORDS)
+    const keywords = (result.keywords ?? []).map(r => ({
+      keyword: r.keyword,
+      pc: r.monthlyPc ?? null,
+      mobile: r.monthlyMobile ?? null,
+      total: r.monthlyTotal ?? null,
+      volumeIndex: r.volumeIndex,
+      changePct: r.changePct,
+      compIdx: r.compIdx ?? null,
+    }))
+    res.json({ source: 'datalab', keywords, total: keywords.length, note: '네이버 광고 API가 이 서버 IP를 허용하지 않아 DataLab 상대 검색량으로 대체합니다.' })
   } catch (err) {
-    console.error('[routes/keywords/discover] 처리 오류:', err)
+    console.error('[routes/keywords/discover] DataLab 폴백 오류:', err)
     res.status(500).json({ error: '키워드 탐색 중 오류가 발생했습니다.' })
   }
 })
