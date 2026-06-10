@@ -8,6 +8,7 @@ import KeywordChips from './components/KeywordChips.jsx'
 import TrendChart, { TREND_PERIODS } from './components/TrendChart.jsx'
 import KeywordTable from './components/KeywordTable.jsx'
 import ProductTable from './components/ProductTable.jsx'
+import KeywordSearch from './components/KeywordSearch.jsx'
 import { Spinner, ErrorBox } from './components/Status.jsx'
 
 const MAIN_KEYWORD = '오토바이헬멧' // 자동 수집·순위 변동 추적 대상 키워드
@@ -104,6 +105,9 @@ export default function App() {
       <main className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6">
         {/* 연관 키워드 칩 */}
         <KeywordChips keyword={keyword} onSelect={setKeyword} disabled={loading} />
+
+        {/* 직접 키워드 검색 */}
+        <KeywordSearch onSearch={(kw) => setKeyword(kw)} />
 
         {loading && !shopping && <Spinner label="네이버 데이터를 수집하는 중..." />}
         {error && <ErrorBox message={error} onRetry={() => loadAll(keyword)} />}

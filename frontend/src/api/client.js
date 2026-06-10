@@ -24,12 +24,12 @@ export function fetchShoppingStats(keyword = '오토바이헬멧') {
   return request(`/api/shopping/stats?${qs}`)
 }
 
-// C. 키워드 검색량 순위
-export function fetchKeywordVolumes() {
+// C. 키워드 검색량 순위 (keywords 생략 시 기본 9개, 배열 전달 시 해당 키워드만 조회)
+export function fetchKeywordVolumes(keywords) {
   return request('/api/keywords/volume', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({}),
+    body: JSON.stringify(keywords?.length ? { keywords } : {}),
   })
 }
 
