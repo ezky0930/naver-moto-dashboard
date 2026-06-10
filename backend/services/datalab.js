@@ -131,8 +131,13 @@ export async function getKeywordVolumes(keywords = DEFAULT_KEYWORDS) {
     const rest = keywords.slice(1)
 
     // 앵커 + 4개씩 묶어서 요청 (요청당 최대 5그룹 제한)
+    // 키워드가 1개(앵커만)일 때는 그 키워드 단독으로 1개 청크 생성
     const chunks = []
-    for (let i = 0; i < rest.length; i += 4) chunks.push([anchor, ...rest.slice(i, i + 4)])
+    if (rest.length === 0) {
+      chunks.push([anchor])
+    } else {
+      for (let i = 0; i < rest.length; i += 4) chunks.push([anchor, ...rest.slice(i, i + 4)])
+    }
 
     const rows = new Map() // keyword → { volumeIndex, changePct }
     let anchorRefAvg = null
