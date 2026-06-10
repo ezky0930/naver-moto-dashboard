@@ -2,7 +2,7 @@
 // D. POST /api/keywords/discover — 씨앗 키워드로 연관 키워드 전체 탐색 (광고 API)
 // E. GET  /api/keywords/adtest  — 광고 API 원본 응답 진단
 import { Router } from 'express'
-import { getKeywordVolumes, MOTO_BROAD_KEYWORDS } from '../services/datalab.js'
+import { getKeywordVolumes, DEFAULT_KEYWORDS, MOTO_BROAD_KEYWORDS } from '../services/datalab.js'
 import { discoverRelatedKeywords, isAdConfigured, makeRawAdRequest } from '../services/searchad.js'
 
 const router = Router()
